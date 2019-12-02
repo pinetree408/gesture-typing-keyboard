@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.6/socket.io.js"></script>
+    <style>
+      .keyboardContainer {
+        width: calc(40 * 10px);
+        height: calc(40 * 3px);
+        margin-left: auto;
+        margin-right: auto;
+        user-drag: none; 
+        user-select: none;
+        -moz-user-select: none;
+        -webkit-user-drag: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+      }
+      .keyboardRow {
+        width: 100%;
+        height: 40px;
+      }
+      .keyboardRow.second {
+        margin-left: 20px;
+      }
+      .keyboardRow.third {
+        margin-left: 40px;
+      }
+      .key {
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        float: left;
+        width: 40px;
+        height: 40px;
+        box-sizing: border-box;
+        border: 1px solid rgba(255, 127, 127, 0.5);
+      }
+      #suggestionContainer {
+        width: calc(40 * 10px);
+        margin-left: auto;
+        margin-right: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <div class="keyboardContainer" id="keyboard">
+        <div class="keyboardRow first">
+          <div class="key">Q</div>
+          <div class="key">W</div>
+          <div class="key">E</div>
+          <div class="key">R</div>
+          <div class="key">T</div>
+          <div class="key">Y</div>
+          <div class="key">U</div>
+          <div class="key">I</div>
+          <div class="key">O</div>
+          <div class="key">P</div>
+        </div>
+        <div class="keyboardRow second">
+          <div class="key">A</div>
+          <div class="key">S</div>
+          <div class="key">D</div>
+          <div class="key">F</div>
+          <div class="key">G</div>
+          <div class="key">H</div>
+          <div class="key">J</div>
+          <div class="key">K</div>
+          <div class="key">L</div>
+        </div>
+        <div class="keyboardRow third">
+          <div class="key">Z</div>
+          <div class="key">X</div>
+          <div class="key">C</div>
+          <div class="key">V</div>
+          <div class="key">B</div>
+          <div class="key">N</div>
+          <div class="key">M</div>
+        </div>
+        <div id="suggestionContainer"></div>
+      </div>
+    </div>
+    <script>
+      var sequence = [];
+      var sequenceFlag = false;
+      var keyboard = document.getElementById('keyboard');
+      var width = 40.0;
+      var heigth = 40.0;
+      keyboard.addEventListener('mousedown',function(e){
+        if (sequenceFlag == false) {
+          sequenceFlag = true;
+          var elem = document.elementFromPoint(e.clientX, e.clientY);
+          if (elem.innerHTML.length == 1) {
+            var char = elem.innerHTML.toLowerCase();
+            sequence.push(char);
+            /*
+            var position = keyboard.getBoundingClientRect();
+            var newX = (e.clientX-position.left)/width;
+            var newY = (e.clientY-position.top)/heigth;
+            sequence.push([newX, newY]);
+            */
+          }
+        }
+      });
+      keyboard.addEventListener('mousemove',function(e){
+        if (sequenceFlag == true) {
+          var elem = document.elementFromPoint(e.clientX, e.clientY);
+          if (elem.innerHTML.length == 1) {
+            
+            var char = elem.innerHTML.toLowerCase();
+            if (sequence[sequence.length-1] != char) {
+              sequence.push(char);
+            }
+            
+            /*
+            var position = keyboard.getBoundingClientRect();
+            var newX = (e.clientX-position.left)/width;
+            var newY = (e.clientY-position.top)/heigth;
+            sequence.push([newX, newY]);
+            */
+          }
+        }
+      });
+      keyboard.addEventListener('mouseup',function(e){
+        if (sequenceFlag == true) {
+          sequenceFlag = false;
+          var elem = document.elementFromPoint(e.clientX, e.clientY);
+          if (elem.innerHTML.length == 1) {
+            
+            var char = elem.innerHTML.toLowerCase();
+            if (sequence[sequence.length-1] != char) {
+              sequence.push(char);
+            }
+            
+            /*
+            var position = keyboard.getBoundingClientRect();
+            var newX = (e.clientX-position.left)/width;
+            var newY = (e.clientY-position.top)/heigth;
+            sequence.push([newX, newY]);
+            */
+          }
+          socket.emit('request/suggestions', sequence);
+          sequence = [];
+        }
+      });
+      var socket = io.connect("http://"+document.domain+":"+location.port+"/mynamespace");
+      socket.on("response/suggestions", function (response) {
+        var suggestions = [];
+        for(var i=0; i < response.suggestions.length; i++) {
+          suggestions.push(response.suggestions[i][1]);
+        }
+        document.getElementById("suggestionContainer").innerHTML = suggestions.join(', ');
+      });
+    </script>
+  </body>
+</html>
