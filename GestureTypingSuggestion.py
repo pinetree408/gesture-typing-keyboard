@@ -2,8 +2,7 @@ import numpy as np
 from scipy.spatial.distance import euclidean
 from fastdtw import fastdtw
 import math
-import ray
-ray.init()
+import multiprocessing
 
 
 class GestureTypingSuggestion():
@@ -72,8 +71,11 @@ class GestureTypingSuggestion():
                 path.append(self.key_position[key])
         return np.array(path)
 
-    @ray.remote
-    def get_distance_from_dtw(target_path, word_path, word, frequency):
+    def get_distance_from_dtw(self, item):
+        target_path = item[0]
+        word_path = item[1]
+        word = item[2]
+        frequency = item[3]
         distance, path = fastdtw(target_path, word_path, dist=euclidean)
         return [distance, word, frequency]
 
@@ -131,13 +133,13 @@ class GestureTypingSuggestion():
                 self.word_and_path_list
             )
         )
-        results = ray.get([
-            self.get_distance_from_dtw.remote(
-                target_path, word_path,
-                word, frequency
-            )
+        num_cores = multiprocessing.cpu_count()
+        pool = multiprocessing.Pool(num_cores)
+        target_list = [
+            [target_path, word_path, word, frequency]
             for word, frequency, word_path in target_word_and_path_list
-        ])
+        ]
+        results = pool.map(self.get_distance_from_dtw, target_list)
         results.sort()
         results = self.get_score(results)
         results.sort(reverse=True)
@@ -155,13 +157,13 @@ class GestureTypingSuggestion():
                 self.word_and_path_list
             )
         )
-        results = ray.get([
-            self.get_distance_from_dtw.remote(
-                target_path, word_path,
-                word, frequency
-            )
+        num_cores = multiprocessing.cpu_count()
+        pool = multiprocessing.Pool(num_cores)
+        target_list = [
+            [target_path, word_path, word, frequency]
             for word, frequency, word_path in target_word_and_path_list
-        ])
+        ]
+        results = pool.map(self.get_distance_from_dtw, target_list)
         results.sort()
         results = self.get_score(results)
         results.sort(reverse=True)
