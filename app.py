@@ -23,8 +23,12 @@ def index():
     return render_template('index.html')
 
 
-def suggestions_thread(sequence):
-    suggestions = gts.get_suggestions_from_key(sequence, 10)
+def suggestions_thread(sequence, mode):
+    if mode == 'key':
+        suggestions = gts.get_suggestions_from_key(sequence, 10)
+    elif mode == 'position':
+        suggestions = gts.get_suggestions_from_position(sequence, 10)
+
     socketio.emit(
         "response/suggestions",
         {
@@ -35,9 +39,9 @@ def suggestions_thread(sequence):
 
 
 @socketio.on("request/suggestions", namespace='/mynamespace')
-def request_videos(sequence):
+def request_suggestions(sequence, mode):
     socketio.start_background_task(
-        suggestions_thread, sequence
+        suggestions_thread, sequence, mode
     )
 
 

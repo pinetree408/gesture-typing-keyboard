@@ -8,8 +8,6 @@ ray.init()
 
 class GestureTypingSuggestion():
     def __init__(self):
-        print('[Gesture Typing Suggestion Model] Start initialize')
-
         self.keyboard_layout = [
             'qwertyuiop',
             'asdfghjkl',
@@ -23,8 +21,6 @@ class GestureTypingSuggestion():
             word_path = self.convert_sequence_to_path(word)
             self.word_and_path_list.append((word, frequency, word_path))
 
-        print('[Gesture Typing Suggestion Model] End initialize')
-
     def set_key_position(self):
         key_position = {}
         for row in range(len(self.keyboard_layout)):
@@ -33,6 +29,28 @@ class GestureTypingSuggestion():
                 position = [col+0.5+row*0.5, row+0.5]
                 key_position[char] = position
         return key_position
+
+    def get_closest_keys_from_key(self, key):
+        key_list = []
+        point = self.key_position[key]
+        for char, value in self.key_position.items():
+            dist_x = math.pow(point[0]-value[0], 2)
+            dist_y = math.pow(point[1]-value[1], 2)
+            dist = math.sqrt(dist_x+dist_y)
+            if dist <= math.sqrt(2):
+                key_list.append(char)
+        return key_list
+
+    def get_closest_keys_from_position(self, position):
+        key_list = []
+        for char, value in self.key_position.items():
+            dist_x = math.pow(position[0]-value[0], 2)
+            dist_y = math.pow(position[1]-value[1], 2)
+            dist = math.sqrt(dist_x+dist_y)
+            if dist <= math.sqrt(2):
+                key_list.append([dist, char])
+        key_list.sort()
+        return [item[1] for item in key_list[:2]]
 
     def set_word_list(self):
         word_list = []
@@ -60,7 +78,7 @@ class GestureTypingSuggestion():
         return [distance, word, frequency]
 
     def get_score(self, results):
-        alpha = 0.95 #0.95
+        alpha = 0.95
         sum_r = 0.0
         sum_n = 0.0
         for result in results:
@@ -75,11 +93,10 @@ class GestureTypingSuggestion():
         return results
 
     def convert_position_to_path(self, position):
-        target_dict = {}
+        target_list = []
         for i, point in enumerate(position):
             min_dist = len(self.keyboard_layout)*len(self.keyboard_layout[0])
             target_key = ''
-            target_value = []
             for key, value in self.key_position.items():
                 dist_x = math.pow(point[0]-value[0], 2)
                 dist_y = math.pow(point[1]-value[1], 2)
@@ -87,26 +104,30 @@ class GestureTypingSuggestion():
                 if min_dist > dist:
                     min_dist = dist
                     target_key = key
-                    target_value = value
-            if target_key in target_dict:
-                if i - target_dict[target_key][0] == 1:
-                    if target_dict[target_key][2] > min_dist:
-                        target_dict[target_key] = [i, point, min_dist]
+            if len(target_list) != 0:
+                if target_list[len(target_list)-1][0] == target_key:
+                    if target_list[len(target_list)-1][2] > min_dist:
+                        target_list[len(target_list)-1] = [
+                            target_key, point, min_dist
+                        ]
+                else:
+                    target_list.append([target_key, point, min_dist])
             else:
-                target_dict[target_key] = [i, point, min_dist]
-        target_list = []
-        for key, value in target_dict.items():
-            target_list.append([value[0], key, value[1]])
-        target_list.sort()
-        target = ''.join([target_item[1] for target_item in target_list])
-        target_path = [target_item[2] for target_item in target_list]
+                target_list.append([target_key, point, min_dist])
+
+        target = ''.join([target_item[0] for target_item in target_list])
+        target_path = [target_item[1] for target_item in target_list]
         return (target, target_path)
 
     def get_suggestions_from_position(self, poistion, suggest_num):
         target, target_path = self.convert_position_to_path(poistion)
+        closest_key = self.get_closest_keys_from_position(target_path[-1])
         target_word_and_path_list = list(
             filter(
-                lambda word_and_path: word_and_path[0][0] == target[0],
+                lambda word_and_path: (
+                    (word_and_path[0][0] == target[0]) and\
+                    (word_and_path[0][-1] in closest_key)
+                ),
                 self.word_and_path_list
             )
         )
@@ -118,15 +139,19 @@ class GestureTypingSuggestion():
             for word, frequency, word_path in target_word_and_path_list
         ])
         results.sort()
-        results = self.get_score(results[:suggest_num*2])
+        results = self.get_score(results)
         results.sort(reverse=True)
         return results[:suggest_num]
 
     def get_suggestions_from_key(self, target, suggest_num):
         target_path = self.convert_sequence_to_path(target)
+        closest_key = self.get_closest_keys_from_key(target[-1])
         target_word_and_path_list = list(
             filter(
-                lambda word_and_path: word_and_path[0][0] == target[0],
+                lambda word_and_path: (
+                    (word_and_path[0][0] == target[0]) and\
+                    (word_and_path[0][-1] in closest_key)
+                ),
                 self.word_and_path_list
             )
         )
@@ -138,6 +163,6 @@ class GestureTypingSuggestion():
             for word, frequency, word_path in target_word_and_path_list
         ])
         results.sort()
-        results = self.get_score(results[:suggest_num*3])
+        results = self.get_score(results)
         results.sort(reverse=True)
         return results[:suggest_num]

@@ -40,6 +40,13 @@
       }
       #suggestionContainer {
         width: calc(40 * 10px);
+        height: calc(40 * 3px);
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .suggestionControlContainer {
+        width: calc(40 * 10px);
+        height: calc(40 * 3px);
         margin-left: auto;
         margin-right: auto;
       }
@@ -47,6 +54,7 @@
   </head>
   <body>
     <div>
+      <div id="suggestionContainer"></div>
       <div class="keyboardContainer" id="keyboard">
         <div class="keyboardRow first">
           <div class="key">Q</div>
@@ -80,12 +88,25 @@
           <div class="key">N</div>
           <div class="key">M</div>
         </div>
-        <div id="suggestionContainer"></div>
+      </div>
+      <div class="suggestionControlContainer">
+        <button onClick="toggleSuggestionMode()">key</button>
       </div>
     </div>
     <script>
       var sequence = [];
       var sequenceFlag = false;
+      var suggestionMode = 'key';
+      function toggleSuggestionMode() {
+        var mode = event.target.innerHTML;
+        if (mode == 'key') {
+          suggestionMode = 'position';
+        } else if (mode == 'position') {
+          suggestionMode = 'key';
+        }
+        event.target.innerHTML = suggestionMode;
+      }
+
       var keyboard = document.getElementById('keyboard');
       var width = 40.0;
       var heigth = 40.0;
@@ -94,14 +115,15 @@
           sequenceFlag = true;
           var elem = document.elementFromPoint(e.clientX, e.clientY);
           if (elem.innerHTML.length == 1) {
-            var char = elem.innerHTML.toLowerCase();
-            sequence.push(char);
-            /*
-            var position = keyboard.getBoundingClientRect();
-            var newX = (e.clientX-position.left)/width;
-            var newY = (e.clientY-position.top)/heigth;
-            sequence.push([newX, newY]);
-            */
+            if (suggestionMode == 'key') {
+              var char = elem.innerHTML.toLowerCase();
+              sequence.push(char);
+            } else if (suggestionMode == 'position') {
+              var position = keyboard.getBoundingClientRect();
+              var newX = (e.clientX-position.left)/width;
+              var newY = (e.clientY-position.top)/heigth;
+              sequence.push([newX, newY]);
+            }
           }
         }
       });
@@ -109,18 +131,18 @@
         if (sequenceFlag == true) {
           var elem = document.elementFromPoint(e.clientX, e.clientY);
           if (elem.innerHTML.length == 1) {
-            
-            var char = elem.innerHTML.toLowerCase();
-            if (sequence[sequence.length-1] != char) {
-              sequence.push(char);
+            if (suggestionMode == 'key') {
+              var char = elem.innerHTML.toLowerCase();
+              if (sequence[sequence.length-1] != char) {
+                sequence.push(char);
+              }
+            } else if (suggestionMode == 'position') {
+              var position = keyboard.getBoundingClientRect();
+              var newX = (e.clientX-position.left)/width;
+              var newY = (e.clientY-position.top)/heigth;
+              sequence.push([newX, newY]);
             }
             
-            /*
-            var position = keyboard.getBoundingClientRect();
-            var newX = (e.clientX-position.left)/width;
-            var newY = (e.clientY-position.top)/heigth;
-            sequence.push([newX, newY]);
-            */
           }
         }
       });
@@ -129,20 +151,20 @@
           sequenceFlag = false;
           var elem = document.elementFromPoint(e.clientX, e.clientY);
           if (elem.innerHTML.length == 1) {
-            
-            var char = elem.innerHTML.toLowerCase();
-            if (sequence[sequence.length-1] != char) {
-              sequence.push(char);
+            if (suggestionMode == 'key') {
+              var char = elem.innerHTML.toLowerCase();
+              if (sequence[sequence.length-1] != char) {
+                sequence.push(char);
+              }
+            } else if (suggestionMode == 'position') {
+              var position = keyboard.getBoundingClientRect();
+              var newX = (e.clientX-position.left)/width;
+              var newY = (e.clientY-position.top)/heigth;
+              sequence.push([newX, newY]);
             }
             
-            /*
-            var position = keyboard.getBoundingClientRect();
-            var newX = (e.clientX-position.left)/width;
-            var newY = (e.clientY-position.top)/heigth;
-            sequence.push([newX, newY]);
-            */
           }
-          socket.emit('request/suggestions', sequence);
+          socket.emit('request/suggestions', sequence, suggestionMode);
           sequence = [];
         }
       });
