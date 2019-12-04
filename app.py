@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, render_template
-from flask_socketio import SocketIO
+from flask import Flask, render_template, request, jsonify
 from GestureTypingSuggestion import GestureTypingSuggestion
 import logging
 
@@ -9,7 +8,6 @@ gts = GestureTypingSuggestion()
 app = Flask(__name__)
 app.debug = False
 app.config['SECRET_KEY'] = 'GESTURE_TYPE'
-socketio = SocketIO(app)
 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
@@ -23,27 +21,24 @@ def index():
     return render_template('index.html')
 
 
-def suggestions_thread(sequence, mode):
-    if mode == 'key':
-        suggestions = gts.get_suggestions_from_key(sequence, 10)
-    elif mode == 'position':
-        suggestions = gts.get_suggestions_from_position(sequence, 10)
-
-    socketio.emit(
-        "response/suggestions",
-        {
-            'suggestions': suggestions
-        },
-        namespace='/mynamespace'
-    )
+@app.route("/request/suggestions/key")
+def request_suggestions_key():
+    sequence = request.args.get('sequence')
+    sequence = ''.join(sequence.split(','))
+    suggestions = gts.get_suggestions_from_key(sequence, 10)
+    return jsonify(suggestions)
 
 
-@socketio.on("request/suggestions", namespace='/mynamespace')
-def request_suggestions(sequence, mode):
-    socketio.start_background_task(
-        suggestions_thread, sequence, mode
-    )
+@app.route("/request/suggestions/position")
+def request_suggestions_position():
+    sequence = request.args.get('sequence')
+    sequence = sequence.split(',')
+    positions = []
+    for i in range(0, len(sequence), 2):
+        positions.append([float(sequence[i]), float(sequence[i+1])])
+    suggestions = gts.get_suggestions_from_position(positions, 10)
+    return jsonify(suggestions)
 
 
 if __name__ == '__main__':
-    socketio.run(app, host=IP, port=PORT, debug=False)
+    app.run(host=IP, port=PORT)

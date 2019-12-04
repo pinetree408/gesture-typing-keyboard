@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.6/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <style>
       .keyboardContainer {
         width: calc(40 * 10px);
@@ -170,19 +170,22 @@
             }
           }
           if (sequence.length > 0) {
-            socket.emit('request/suggestions', sequence, suggestionMode);
+            var baseUrl = "http://"+document.domain+":"+location.port + "/";
+            var url = baseUrl + "request/suggestions/" + suggestionMode;
+            url = url + '?sequence=' + sequence.toString();
+            console.log(url);
+            fetch(url).then(function(response){
+              return response.json();
+            }).then(function(suggestions){
+              var results = [];
+              for(var i=0; i < suggestions.length; i++) {
+                results.push(suggestions[i][1]);
+              }
+              document.getElementById("suggestionContainer").innerHTML = results.join(', ');
+            });
           }
           sequence = [];
         }
-      });
-
-      var socket = io.connect("http://"+document.domain+":"+location.port+"/mynamespace");
-      socket.on("response/suggestions", function (response) {
-        var suggestions = [];
-        for(var i=0; i < response.suggestions.length; i++) {
-          suggestions.push(response.suggestions[i][1]);
-        }
-        document.getElementById("suggestionContainer").innerHTML = suggestions.join(', ');
       });
 
       var dots = [],
