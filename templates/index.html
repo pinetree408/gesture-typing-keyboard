@@ -50,6 +50,13 @@
         margin-left: auto;
         margin-right: auto;
       }
+      .trail {
+        pointer-events: none;
+        position: absolute;
+        height: 4px; width: 4px;
+        border-radius: 2px;
+        background: teal;
+      }
     </style>
   </head>
   <body>
@@ -142,7 +149,6 @@
               var newY = (e.clientY-position.top)/heigth;
               sequence.push([newX, newY]);
             }
-            
           }
         }
       });
@@ -162,12 +168,14 @@
               var newY = (e.clientY-position.top)/heigth;
               sequence.push([newX, newY]);
             }
-            
           }
-          socket.emit('request/suggestions', sequence, suggestionMode);
+          if (sequence.length > 0) {
+            socket.emit('request/suggestions', sequence, suggestionMode);
+          }
           sequence = [];
         }
       });
+
       var socket = io.connect("http://"+document.domain+":"+location.port+"/mynamespace");
       socket.on("response/suggestions", function (response) {
         var suggestions = [];
@@ -176,6 +184,58 @@
         }
         document.getElementById("suggestionContainer").innerHTML = suggestions.join(', ');
       });
+
+      var dots = [],
+          mouse = {
+            x: 0,
+            y: 0
+          };
+
+      var Dot = function() {
+        this.x = 0;
+        this.y = 0;
+        this.node = (function(){
+          var n = document.createElement("div");
+          n.className = "trail";
+          document.body.appendChild(n);
+          return n;
+        }());
+      };
+
+      Dot.prototype.draw = function() {
+        this.node.style.left = this.x + "px";
+        this.node.style.top = this.y + "px";
+      };
+
+      for (var i = 0; i < 20; i++) {
+        var d = new Dot();
+        dots.push(d);
+      }
+
+      function draw() {
+        var x = mouse.x,
+            y = mouse.y;
+        dots.forEach(function(dot, index, dots) {
+          var nextDot = dots[index + 1] || dots[0];
+          dot.x = x;
+          dot.y = y;
+          dot.draw();
+          x += (nextDot.x - dot.x) * .6;
+          y += (nextDot.y - dot.y) * .6;
+        });
+      }
+
+      addEventListener("mousemove", function(event) {
+        mouse.x = event.pageX;
+        mouse.y = event.pageY;
+      });
+
+      function animate() {
+        draw();
+        requestAnimationFrame(animate);
+      }
+
+      animate();
     </script>
   </body>
 </html>
