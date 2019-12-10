@@ -25,7 +25,7 @@ def index():
 def request_suggestions_key():
     sequence = request.args.get('sequence')
     sequence = ''.join(sequence.split(','))
-    suggestions = gts.get_suggestions_from_key(sequence, 10)
+    suggestions = gts.get_suggestions_from_key(sequence, 15)
     return jsonify(suggestions)
 
 
@@ -36,7 +36,7 @@ def request_suggestions_position():
     positions = []
     for i in range(0, len(sequence), 2):
         positions.append([float(sequence[i]), float(sequence[i+1])])
-    suggestions = gts.get_suggestions_from_position(positions, 10)
+    suggestions = gts.get_suggestions_from_position(positions, 15)
     return jsonify(suggestions)
 
 

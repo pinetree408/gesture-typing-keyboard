@@ -19,6 +19,6 @@ venv.bak/
 .DS_Store
 
 # For Project
-config.py
 *.swp
-dict.json
+raw_word_list.txt
+phrases.txt
