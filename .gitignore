@@ -22,3 +22,5 @@ venv.bak/
 *.swp
 raw_word_list.txt
 phrases.txt
+install_req.bat
+.idea
