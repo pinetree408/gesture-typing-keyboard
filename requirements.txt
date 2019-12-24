@@ -1,8 +1,10 @@
 attrs==19.3.0
 Click==7.0
 colorama==0.4.1
+entrypoints==0.3
 fastdtw==0.3.4
 filelock==3.0.12
+flake8==3.7.9
 Flask==1.1.1
 Flask-SocketIO==4.2.1
 funcsigs==1.0.2
@@ -11,12 +13,15 @@ itsdangerous==1.1.0
 Jinja2==2.10.3
 jsonschema==3.2.0
 MarkupSafe==1.1.1
+mccabe==0.6.1
 more-itertools==8.0.0
 numpy==1.17.4
 packaging==19.2
 pluggy==0.13.1
 protobuf==3.11.0
 py==1.8.0
+pycodestyle==2.5.0
+pyflakes==2.1.1
 pyparsing==2.4.5
 pyrsistent==0.15.6
 pytest==5.3.1
