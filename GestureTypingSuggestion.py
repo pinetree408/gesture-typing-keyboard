@@ -125,7 +125,7 @@ class GestureTypingSuggestion():
         target_word_and_path_list = list(
             filter(
                 lambda word_and_path: (
-                    (word_and_path[0][0] == target[0]) and\
+                    (word_and_path[0][0] == target[0]) and
                     (word_and_path[0][-1] in closest_key)
                 ),
                 self.word_and_path_list
@@ -149,7 +149,7 @@ class GestureTypingSuggestion():
         target_word_and_path_list = list(
             filter(
                 lambda word_and_path: (
-                    (word_and_path[0][0] == target[0]) and\
+                    (word_and_path[0][0] == target[0]) and
                     (word_and_path[0][-1] in closest_key)
                 ),
                 self.word_and_path_list
