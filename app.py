@@ -42,6 +42,7 @@ def request_suggestions_position():
     except Exception:
         return jsonify("")
 
+
 @app.route("/request/suggestions/key_pos")
 def request_suggestions_key_and_position():
     sequence = request.args.get('sequence')
@@ -52,7 +53,9 @@ def request_suggestions_key_and_position():
     positions = []
     for i in range(0, len(positionTemp), 2):
         positions.append([float(positionTemp[i]), float(positionTemp[i+1])])
-    suggestions = gts.get_suggestions_from_keys_and_position(keys, positions, 10)
+    suggestions = gts.get_suggestions_from_keys_and_position(
+        keys, positions, 10
+    )
     return jsonify(suggestions)
 
 
