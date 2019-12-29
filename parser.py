@@ -1,6 +1,7 @@
 import re
 p = re.compile('[a-z]+')
 
+
 def is_english_word(sequence):
     pure_char_list = p.findall(sequence)
     if len(pure_char_list) == 1:
@@ -11,6 +12,7 @@ def is_english_word(sequence):
     else:
         return False
 
+
 phrases_unique_word_list = []
 with open('phrases.txt') as f_r:
     lines = f_r.read().splitlines()
@@ -18,7 +20,7 @@ with open('phrases.txt') as f_r:
         line = line.lower()
         temp_word_list = line.split(' ')
         for word in temp_word_list:
-            if is_english_word(word) and not word in phrases_unique_word_list:
+            if is_english_word(word) and word not in phrases_unique_word_list:
                 phrases_unique_word_list.append(word)
 print(len(phrases_unique_word_list))
 
