@@ -2,11 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ecdf737e-dff5-49c1-bf18-5dc253f48302" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/gesture_typing_keyboard.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gesture_typing_keyboard.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GestureTypingGAT.py" beforeDir="false" afterPath="$PROJECT_DIR$/GestureTypingGAT.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/analyze.py" beforeDir="false" afterPath="$PROJECT_DIR$/analyze.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/result0.95.csv" beforeDir="false" afterPath="$PROJECT_DIR$/result0.95.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/result1.csv" beforeDir="false" afterPath="$PROJECT_DIR$/result1.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sandbox3.py" beforeDir="false" afterPath="$PROJECT_DIR$/sandbox3.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/total.csv" beforeDir="false" afterPath="$PROJECT_DIR$/total.csv" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

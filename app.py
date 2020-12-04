@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, render_template, request, jsonify
-from GestureTypingSuggestion import GestureTypingSuggestion
+from GestureTypingGAT import GestureTypingSuggestion
 import logging
 
 gts = GestureTypingSuggestion()
@@ -13,7 +13,7 @@ log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
 IP = '0.0.0.0'
-PORT = 8080
+PORT = 8090
 
 
 @app.route('/')
@@ -37,7 +37,10 @@ def request_suggestions_position():
         positions = []
         for i in range(0, len(sequence), 2):
             positions.append([float(sequence[i]), float(sequence[i+1])])
-        suggestions = gts.get_suggestions_from_position(positions, 10)
+        gts.isVisualize = True
+        gts.isNormalize = False
+        #suggestions = gts.get_corner_angle_sequence_from_position(positions)
+        suggestions = gts.get_suggestions_from_position_by_angle(positions, 10)
         return jsonify(suggestions)
     except Exception:
         return jsonify("")
@@ -52,6 +55,7 @@ def request_suggestions_key_and_position():
     positions = []
     for i in range(0, len(positionTemp), 2):
         positions.append([float(positionTemp[i]), float(positionTemp[i+1])])
+
     suggestions = gts.get_suggestions_from_keys_and_position(keys, positions, 10)
     return jsonify(suggestions)
 

@@ -20,6 +20,11 @@ def get_words_to_check(fileName):
     return words
 
 
+def interpolate_path(path, num):
+
+    for x, y in path:
+        a = 1
+
 
 def analyze(words, alpha):
     # 11
@@ -50,7 +55,8 @@ def analyze(words, alpha):
         isHit = False
         positions = gts.convert_sequence_to_path(word)
         start_time = time.time()
-        suggestions = gts.get_suggestions_from_position_by_angle(positions, num_suggestion, word)
+        #suggestions = gts.get_suggestions_from_position_by_angle(positions, num_suggestion, word)
+        suggestions = gts.get_suggestions_from_position_normalized(positions, num_suggestion, word)
         process_time = time.time() - start_time
 
         if process_time < min_process_time:
@@ -84,7 +90,7 @@ def analyze(words, alpha):
             else:
                 order_check = math.floor(match_order / 10)
                 match_order_count[5 + order_check] = match_order_count[5 + order_check]  + 1
-            #print(match_order, word,  '  -- time: ' + str(time.time() - start_time))
+            print(match_order, word,  '  -- time: ' + str(time.time() - start_time))
         else:
             match_order_count[0] = match_order_count[0] + 1
             print('[' + str(num) + ']  ' + word + '  -- time: ' + str(time.time() - start_time))
@@ -125,14 +131,17 @@ if __name__ == '__main__':
     words = list(filter(lambda w: len(w) > 1, words))
 
     result_writer = open('total.csv', 'w')
-    result_writer.write('Alpha,Not Hit,1st,2nd,3rd,4th,5th,10,20,30,40,50,60,70,80,90,100\n')
+    result_writer.write('Alpha,Not Hit,1st,2nd,3rd,4th,5th,10,20,30,40,50,60,70,80,90,100,Max\n')
 
-    alphas = [1, 0.99, 0.98, 0.97,0.95,0.9,0.7,0.5,0.3,0.1,0.05]
+    alphas = [0.95]
+    #alphas = [1, 0.99, 0.98, 0.97,0.95,0.9,0.7,0.5,0.3,0.1,0.05]
     for alpha in alphas:
+        words = ['less']
         match_order_count, match_order_max =  analyze(words, alpha)
         result_writer.write(str(alpha))
         for order in match_order_count:
             result_writer.write(',' + str(order))
+        result_writer.write(','+str(match_order_max))
         result_writer.write('\n')
 
 

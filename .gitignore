@@ -15,6 +15,9 @@ venv.bak/
 # Vim
 *.sm[pon]
 
+*.csv
+*.ods
+
 # Mac OS
 .DS_Store
 
