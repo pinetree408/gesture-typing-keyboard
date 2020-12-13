@@ -172,7 +172,7 @@ class GestureTypingSuggestion():
 
         if maxLen == 0:
             maxLen = 1
-
+        maxLen = 1
         normalized = []
         for x, y in positions:
             normalized.append( [(x-positions[0][0])/maxLen, (y-positions[0][1])/maxLen] )
@@ -216,10 +216,18 @@ class GestureTypingSuggestion():
         #print(positions)
         if self.isNormalize:
             positions = self.normalize(positions)
+        else:
+            arr = []
+            #print(positions)
+            for x, y in positions:
+                arr.append([(x - positions[0][0]), (y - positions[0][1])])
+            positions = arr
+            #print(positions)
         #positions = np.diff(positions, axis= 0)
         #np.insert(positions, 0, 0)
         #print(positions)
-        simplified_trajectory = rdp(positions, epsilon=0.3)
+
+        simplified_trajectory = rdp(positions, epsilon=0.2)
         #minimum angle = 15 degree
         #print(simplified_trajectory)
         # Compute the direction vectors on the simplified_trajectory.
@@ -236,18 +244,23 @@ class GestureTypingSuggestion():
         # Large theta is associated with greatest change in direction.
         #sequence = list(filter(lambda angle: np.abs(angle) < self.min_angle, angle_sequence))
         sequence = []
-        sequence.append(0)
+        #sequence.append(0)
+
+        #sequence.append(1000)
         for angle in angle_sequence:
-            if np.abs(angle) > self.min_angle:
-                sequence.append(angle)
+            sequence.append(angle)
+            #f angle > self.min_angle or angle < -self.min_angle:
         #sequence = list(np.diff(sequence))
-        sequence.append(0)
+        sequence[0] = 1000
+        sequence.append(1000)
         #print(sequence)
 
         if self.isVisualize:
-            print(positions)
+            #print(positions)
             self.visualize_path(positions, simplified_trajectory, angle_sequence)
         return sequence
+
+
     @ray.remote
     def get_distance_from_dtw(target_path, word_path, word, frequency):
         distance, path = fastdtw(target_path, word_path, dist=euclidean)
@@ -271,7 +284,7 @@ class GestureTypingSuggestion():
         target_word_and_path_list = list(
             filter(
             lambda word_and_path: (
-                (word_and_path[0][0] in first_letter_neighbor) and (np.abs(len(angle_sequence) - word_and_path[3]) < 2)
+                (word_and_path[0][0] in first_letter_neighbor) and (np.abs(len(angle_sequence) - word_and_path[3]) < 1)
             ),
             self.word_angle_list
             )
@@ -372,17 +385,19 @@ class GestureTypingSuggestion():
             lambda word_and_path: (
                 #(word_and_path[0][0] in closest_key)
                 (word_and_path[0][0] == target[0]) and\
-                (word_and_path[0][-1] in closest_key)
+                #(word_and_path[0][-1] in closest_key)
+                (word_and_path[0][-1] == target[-1])
             ),
             self.word_and_path_list
             )
         )
+        print(len(target_word_and_path_list))
         results = ray.get([
             self.get_distance_from_dtw.remote(
             target_path, word_path,
             word, frequency
             )
-            for word, frequency, word_path in target_word_and_path_list
+            for word, frequency, word_path, num_corner in target_word_and_path_list
         ])
         results.sort()
         results = self.get_score(results)

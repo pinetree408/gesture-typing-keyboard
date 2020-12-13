@@ -13,7 +13,7 @@ log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
 IP = '0.0.0.0'
-PORT = 8090
+PORT = 8080
 
 
 @app.route('/')
@@ -37,7 +37,20 @@ def request_suggestions_position():
         positions = []
         for i in range(0, len(sequence), 2):
             positions.append([float(sequence[i]), float(sequence[i+1])])
-        gts.isVisualize = True
+        suggestions = gts.get_suggestions_from_position(positions, 10)
+        return jsonify(suggestions)
+    except Exception:
+        return jsonify("")
+
+@app.route("/request/suggestions/position_s")
+def request_suggestions_position_small():
+    try:
+        sequence = request.args.get('sequence')
+        sequence = sequence.split(',')
+        positions = []
+        for i in range(0, len(sequence), 2):
+            positions.append([float(sequence[i]), float(sequence[i+1])])
+        gts.isVisualize = False
         gts.isNormalize = False
         #suggestions = gts.get_corner_angle_sequence_from_position(positions)
         suggestions = gts.get_suggestions_from_position_by_angle(positions, 10)
