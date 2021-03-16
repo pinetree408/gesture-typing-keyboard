@@ -96,23 +96,10 @@
           <div class="key">M</div>
         </div>
       </div>
-      <div class="suggestionControlContainer">
-        <button onClick="toggleSuggestionMode()">key</button>
-      </div>
     </div>
     <script>
       var sequence = [];
       var sequenceFlag = false;
-      var suggestionMode = 'key';
-      function toggleSuggestionMode() {
-        var mode = event.target.innerHTML;
-        if (mode == 'key') {
-          suggestionMode = 'position';
-        } else if (mode == 'position') {
-          suggestionMode = 'key';
-        }
-        event.target.innerHTML = suggestionMode;
-      }
 
       var keyboard = document.getElementById('keyboard');
       var width = 40.0;
@@ -122,15 +109,10 @@
           sequenceFlag = true;
           var elem = document.elementFromPoint(e.clientX, e.clientY);
           if (elem.innerHTML.length == 1) {
-            if (suggestionMode == 'key') {
-              var char = elem.innerHTML.toLowerCase();
-              sequence.push(char);
-            } else if (suggestionMode == 'position') {
-              var position = keyboard.getBoundingClientRect();
-              var newX = (e.clientX-position.left)/width;
-              var newY = (e.clientY-position.top)/heigth;
-              sequence.push([newX, newY]);
-            }
+            var position = keyboard.getBoundingClientRect();
+            var newX = (e.clientX-position.left)/width;
+            var newY = (e.clientY-position.top)/heigth;
+            sequence.push([newX, newY]);
           }
         }
       });
@@ -138,17 +120,10 @@
         if (sequenceFlag == true) {
           var elem = document.elementFromPoint(e.clientX, e.clientY);
           if (elem.innerHTML.length == 1) {
-            if (suggestionMode == 'key') {
-              var char = elem.innerHTML.toLowerCase();
-              if (sequence[sequence.length-1] != char) {
-                sequence.push(char);
-              }
-            } else if (suggestionMode == 'position') {
-              var position = keyboard.getBoundingClientRect();
-              var newX = (e.clientX-position.left)/width;
-              var newY = (e.clientY-position.top)/heigth;
-              sequence.push([newX, newY]);
-            }
+            var position = keyboard.getBoundingClientRect();
+            var newX = (e.clientX-position.left)/width;
+            var newY = (e.clientY-position.top)/heigth;
+            sequence.push([newX, newY]);
           }
         }
       });
@@ -157,22 +132,15 @@
           sequenceFlag = false;
           var elem = document.elementFromPoint(e.clientX, e.clientY);
           if (elem.innerHTML.length == 1) {
-            if (suggestionMode == 'key') {
-              var char = elem.innerHTML.toLowerCase();
-              if (sequence[sequence.length-1] != char) {
-                sequence.push(char);
-              }
-            } else if (suggestionMode == 'position') {
-              var position = keyboard.getBoundingClientRect();
-              var newX = (e.clientX-position.left)/width;
-              var newY = (e.clientY-position.top)/heigth;
-              sequence.push([newX, newY]);
-            }
+            var position = keyboard.getBoundingClientRect();
+            var newX = (e.clientX-position.left)/width;
+            var newY = (e.clientY-position.top)/heigth;
+            sequence.push([newX, newY]);
           }
           if (sequence.length > 0) {
-            var baseUrl = "http://"+document.domain+":"+location.port + "/";
-            var url = baseUrl + "request/suggestions/" + suggestionMode;
-            url = url + '?sequence=' + sequence.toString();
+            var baseUrl = "http://"+document.domain+":"+location.port;
+            var url = baseUrl + "/request/suggestions/position?sequence=";
+            url = url + sequence.toString();
             console.log(url);
             fetch(url).then(function(response){
               return response.json();
