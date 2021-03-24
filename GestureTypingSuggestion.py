@@ -38,10 +38,13 @@ class GestureTypingSuggestion():
 
     def set_word_list(self):
         word_list = []
+        self.max_len = 0
         with open('word_list.txt', 'r') as word_list_file:
             lines = word_list_file.read().splitlines()
             for line in lines:
                 items = line.split('\t')
+                if len(items[0]) > self.max_len:
+                    self.max_len = len(items[0])
                 word_list.append((items[0], int(items[1])))
         return word_list
 
@@ -126,29 +129,44 @@ class GestureTypingSuggestion():
         if len(datas) <= self.interpolation_size:
             return interpolated_datas
 
-        total_dist = self.get_total_dist_from_path(datas)
-        unit_dist = total_dist / (self.interpolation_size - 1)
-        accum_dist = 0
-        min_dist = 1
-        min_dist_cand = [0, 0]
-        for i, cur_data in enumerate(datas):
-            if i == len(datas) - 1:
-                interpolated_datas.append(cur_data)
-            elif i > 0:
-                pre_data = datas[i - 1]
-                dist = self.get_dist(pre_data, cur_data)
-                accum_dist = accum_dist + dist
-                ratio = accum_dist / unit_dist
-                if abs(len(interpolated_datas) - ratio) < min_dist:
-                    min_dist = abs(len(interpolated_datas) - ratio)
-                    min_dist_cand = cur_data
-                else:
-                    interpolated_datas.append(min_dist_cand)
-                    min_dist = 1 
-            elif i == 0:
-                interpolated_datas.append(cur_data)
+        temp_interpolated_datas = [datas[0]]
+        threshold = 0.5
+        points = [datas[0]]
+        for cur_data in datas[1:]:
+            average_data = self.get_average_data(points)
+            dist = self.get_dist(average_data, cur_data)
+            if dist >= threshold:
+                temp_interpolated_datas.append(average_data)
+                points = [cur_data]
+            else:
+                points.append(cur_data)
+        average_data = self.get_average_data(points)
+        temp_interpolated_datas.append(average_data)
+        temp_interpolated_datas.append(datas[-1])
+
+        print(threshold, len(datas), len(temp_interpolated_datas))
+
+        if len(temp_interpolated_datas) < self.interpolation_size:
+            interpolated_datas = self.up_sampling(temp_interpolated_datas)
+        elif len(temp_interpolated_datas) == self.interpolation_size:
+            interpolated_datas = temp_interpolated_datas
+        elif len(temp_interpolated_datas) > self.interpolation_size:
+            interpolated_datas = self.down_sampling(temp_interpolated_datas)
 
         return interpolated_datas
+
+    def get_average_data(self, datas):
+        average_data_list = [[], []]
+        for data in datas:
+            average_data_list[0].append(data[0])
+            average_data_list[1].append(data[1])
+
+        average_data = [
+            sum(average_data_list[0]) / len(datas),
+            sum(average_data_list[1]) / len(datas)
+        ]
+
+        return average_data
 
     def convert_word_to_interpolated_path(self, word):
         paths = self.convert_word_to_path(word)
@@ -201,22 +219,23 @@ class GestureTypingSuggestion():
             if dist <= math.sqrt(2):
                 key_list.append([dist, char])
         key_list.sort()
-        return [item[1] for item in key_list[:2]]
+        return [item[1] for item in key_list]
 
     def get_suggestions_from_position(self, position, suggest_num):
         target_path = self.convert_position_to_interpolated_path(position)
-        closest_first_key = self.get_closest_keys_from_position(target_path[0])[0]
+        closest_first_keys = self.get_closest_keys_from_position(target_path[0])
         closest_last_keys = self.get_closest_keys_from_position(target_path[-1])
 
         target_word_and_path_list = list(
             filter(
                 lambda word_and_path: (
-                    (word_and_path[0][0] == closest_first_key) and
+                    (word_and_path[0][0] in closest_first_keys) and
                     (word_and_path[0][-1] in closest_last_keys)
                 ),
                 self.word_and_path_list
             )
         )
+
         results = ray.get([
             self.get_distance_from_dtw.remote(
                 target_path, word_path,
